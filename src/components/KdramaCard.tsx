@@ -48,7 +48,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                     fill
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    unoptimized={drama.poster_path.includes('themoviedb.org')}
+                    unoptimized
                 />
 
                 {/* Badges Overlay */}
@@ -98,7 +98,14 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                         {drama.characters?.map((char) => (
                             <div key={char.id} className="relative h-7 w-7 rounded-full border-2 border-white dark:border-zinc-900 overflow-hidden bg-zinc-100 shadow-sm" title={`${char.actorName}`}>
                                 {char.profile_path ? (
-                                    <Image src={char.profile_path} alt={char.actorName || "Actor profile"} fill className="object-cover" sizes="28px" />
+                                    <Image
+                                        src={char.profile_path}
+                                        alt={char.actorName || "Actor profile"}
+                                        fill
+                                        className="object-cover"
+                                        sizes="28px"
+                                        unoptimized
+                                    />
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-zinc-400 bg-zinc-100">
                                         {char.actorName?.[0] || "?"}
