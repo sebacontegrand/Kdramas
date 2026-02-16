@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { fetchKdramas, Kdrama } from '@/lib/tmdb';
+import { getKdramas, getInteractionStats } from '@/lib/actions';
+import { Kdrama } from '@/lib/tmdb';
 import KdramaCard from '@/components/KdramaCard';
-import { getInteractionStats } from '@/lib/actions';
 
 type SortOption = 'popularity' | 'latest' | 'oldest' | 'rating-highest' | 'rating-lowest';
 
@@ -48,7 +48,7 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const data = await fetchKdramas(page, originCountry);
+      const data = await getKdramas(page, originCountry);
 
       const newIds = data.map(d => d.id);
       await refreshStats(newIds);
@@ -60,7 +60,7 @@ export default function Home() {
 
         // Update actor list from unique data
         const actors = new Set<string>();
-        uniqueData.forEach(d => d.characters?.forEach(c => actors.add(c.actorName)));
+        uniqueData.forEach(d => d.characters?.forEach((c: { actorName: string }) => actors.add(c.actorName)));
         setAllActors(Array.from(actors).sort());
 
         return uniqueData;
@@ -74,7 +74,7 @@ export default function Home() {
   const sortedAndFilteredDramas = kdramas
     .filter(drama => {
       const matchesSearch = drama.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesActor = !selectedActor || drama.characters?.some(c => c.actorName === selectedActor);
+      const matchesActor = !selectedActor || drama.characters?.some((c: { actorName: string }) => c.actorName === selectedActor);
       return matchesSearch && matchesActor;
     })
     .sort((a, b) => {

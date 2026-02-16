@@ -1,4 +1,4 @@
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 export interface Kdrama {
@@ -25,59 +25,59 @@ export async function fetchKdramas(page: number = 1, originCountry: string = 'KR
         // Return mock data if no key is provided
         const allMockData: Kdrama[] = [
             {
-                id: 94796,
+                id: 95074,
                 name: "Crash Landing on You",
-                poster_path: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/6oomDwsUCvS61KEv7kR3ueQNTSO.jpg",
+                poster_path: "https://image.tmdb.org/t/p/w500/3x4EX2D9I8Cj2J3a8u3E9j0b1Gz.jpg",
                 overview: "A paragliding mishap drops a South Korean heiress in North Korea.",
                 first_air_date: "2019-12-14",
                 vote_average: 8.8,
                 popularity: 250.5,
                 watchProviders: ["Netflix"],
                 characters: [
-                    { id: 1, name: "Yoon Se-ri", actorName: "Son Ye-jin", profile_path: "https://image.tmdb.org/t/p/w200/6i8N2D6m4E8YhHaqD9i3InNfX9P.jpg" },
-                    { id: 2, name: "Ri Jeong-hyeok", actorName: "Hyun Bin", profile_path: "https://image.tmdb.org/t/p/w200/9y39CH8CH6N2D6m4E8YhHaqD9i3InNfX9P.jpg" }
+                    { id: 1, name: "Yoon Se-ri", actorName: "Son Ye-jin", profile_path: "https://image.tmdb.org/t/p/w200/nS8vWd6p2Y4Y8D2K4M2I1oX1pY0.jpg" },
+                    { id: 2, name: "Ri Jeong-hyeok", actorName: "Hyun Bin", profile_path: "https://image.tmdb.org/t/p/w200/eM3jY2G2R1vM5kX7n1R4u1q1n1R.jpg" }
                 ]
             },
             {
                 id: 67915,
                 name: "Goblin",
-                poster_path: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/8v0BfNskm7fV0V2V2V2V2V2V2V.jpg",
+                poster_path: "https://image.tmdb.org/t/p/w500/mUqI4pI8uKj2l3o1s9l7c0g7t7g.jpg",
                 overview: "In his quest for a bride to break his immortal curse, a 939-year-old guardian of souls meets a bright girl.",
                 first_air_date: "2016-12-02",
                 vote_average: 8.7,
                 popularity: 180.2,
                 watchProviders: ["Viki"],
                 characters: [
-                    { id: 3, name: "Kim Shin", actorName: "Gong Yoo", profile_path: "https://image.tmdb.org/t/p/w200/6H6N2D6m4E8YhHaqD9i3InNfX9P.jpg" },
-                    { id: 4, name: "Ji Eun-tak", actorName: "Kim Go-eun", profile_path: "https://image.tmdb.org/t/p/w200/7H6N2D6m4E8YhHaqD9i3InNfX9P.jpg" }
+                    { id: 3, name: "Kim Shin", actorName: "Gong Yoo", profile_path: "https://image.tmdb.org/t/p/w200/jI2P5X0h8h4h8r9k7r3n2f9f1d2.jpg" },
+                    { id: 4, name: "Ji Eun-tak", actorName: "Kim Go-eun", profile_path: "https://image.tmdb.org/t/p/w200/dE2x8X8X8x2g4o4r0o1c3o6u2e3.jpg" }
                 ]
             },
             {
-                id: 110309,
+                id: 105650,
                 name: "Alice in Borderland",
-                poster_path: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/20mC797v9nuVIdO9Ym9as.jpg",
+                poster_path: "https://image.tmdb.org/t/p/w500/oY6w3v1c1t0c0e7h4h5h3f9m4a6.jpg",
                 overview: "An obsessive gamer and his friends find themselves in a parallel Tokyo where they must compete in games to survive.",
                 first_air_date: "2020-12-10",
                 vote_average: 8.2,
                 popularity: 450.8,
                 watchProviders: ["Netflix"],
                 characters: [
-                    { id: 101, name: "Ryohei Arisu", actorName: "Kento Yamazaki", profile_path: null },
-                    { id: 102, name: "Yuzuha Usagi", actorName: "Tao Tsuchiya", profile_path: null }
+                    { id: 101, name: "Ryohei Arisu", actorName: "Kento Yamazaki", profile_path: "https://image.tmdb.org/t/p/w200/jX2x1x3c7c8c3e8e7c1u9o3u8f2.jpg" },
+                    { id: 102, name: "Yuzuha Usagi", actorName: "Tao Tsuchiya", profile_path: "https://image.tmdb.org/t/p/w200/bV5x4d5t8t9u3e9t5t9t6r4c1c5.jpg" }
                 ]
             },
             {
-                id: 82505,
+                id: 89236,
                 name: "The Untamed",
-                poster_path: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/7vClS4pYpT76878S978jV0V.jpg",
+                poster_path: "https://image.tmdb.org/t/p/w500/hJjY5x1g4j5g8u2b5o8n7o3a7o4.jpg",
                 overview: "Two talented disciples of rival clans form a friendship and work together to solve a series of mysteries.",
                 first_air_date: "2019-06-27",
                 vote_average: 8.5,
                 popularity: 120.3,
                 watchProviders: ["Netflix", "Viki"],
                 characters: [
-                    { id: 201, name: "Wei Wuxian", actorName: "Xiao Zhan", profile_path: null },
-                    { id: 202, name: "Lan Wangji", actorName: "Wang Yibo", profile_path: null }
+                    { id: 201, name: "Wei Wuxian", actorName: "Xiao Zhan", profile_path: "https://image.tmdb.org/t/p/w200/dG7h8g4k2m9h4j2l9a5r8u6w3x4.jpg" },
+                    { id: 202, name: "Lan Wangji", actorName: "Wang Yibo", profile_path: "https://image.tmdb.org/t/p/w200/fG5h9j7l3k8o0m7n2p1r5s4t3v2.jpg" }
                 ]
             }
         ];

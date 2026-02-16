@@ -2,6 +2,15 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { fetchKdramas } from './tmdb';
+
+/**
+ * Server Action to fetch K-dramas from TMDB.
+ * This keeps the API key secure on the server.
+ */
+export async function getKdramas(page: number = 1, originCountry: string = 'KR') {
+    return await fetchKdramas(page, originCountry);
+}
 
 /**
  * Submits or updates a rating for a K-drama.
