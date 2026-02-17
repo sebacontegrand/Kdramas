@@ -17,6 +17,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
   const [originCountry, setOriginCountry] = useState('KR');
   const [allActors, setAllActors] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   const refreshStats = useCallback(async (ids: number[]) => {
     const stats = await getInteractionStats(ids);
@@ -105,9 +106,16 @@ export default function Home() {
                   Streaming info • Community Stats • Multi-Origin
                 </p>
               </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-4 py-2 bg-sage-100 text-sage-700 rounded-xl text-sm font-bold sm:hidden"
+              >
+                <SearchIcon className="h-4 w-4" />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </button>
             </div>
 
-            <div className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className={`${showFilters ? 'grid' : 'hidden'} sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-300`}>
               {/* Origin Country */}
               <div className="relative group">
                 <select
