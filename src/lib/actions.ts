@@ -16,44 +16,53 @@ export async function getKdramas(page: number = 1, originCountry: string = 'KR')
  * Toggles a show as favorite for the guest user.
  */
 export async function toggleFavorite(tmdbId: number) {
-    let user = await prisma.user.findUnique({
-        where: { username: 'guest_user' }
-    });
-
-    if (!user) {
-        user = await prisma.user.create({
-            data: { username: 'guest_user' }
+    try {
+        console.log('DEBUG: toggleFavorite for tmdbId:', tmdbId);
+        let user = await prisma.user.findUnique({
+            where: { username: 'guest_user' }
         });
-    }
 
-    const existingRating = await prisma.rating.findUnique({
-        where: {
-            userId_tmdbId: {
-                userId: user.id,
-                tmdbId: tmdbId
-            }
+        if (!user) {
+            console.log('DEBUG: guest_user not found, creating...');
+            user = await prisma.user.create({
+                data: { username: 'guest_user' }
+            });
         }
-    });
 
-    if (existingRating) {
-        await prisma.rating.update({
-            where: { id: existingRating.id },
-            data: { isFavorite: !existingRating.isFavorite }
-        });
-    } else {
-        await prisma.rating.create({
-            data: {
-                userId: user.id,
-                tmdbId: tmdbId,
-                score: 0,
-                hasSeen: false,
-                isFavorite: true
+        const rating = await prisma.rating.findUnique({
+            where: {
+                userId_tmdbId: {
+                    userId: user.id,
+                    tmdbId: tmdbId
+                }
             }
         });
-    }
 
-    revalidatePath('/');
-    revalidatePath('/favorites');
+        if (rating) {
+            console.log('DEBUG: Updating existing rating for favorite toggle');
+            await prisma.rating.update({
+                where: { id: rating.id },
+                data: { isFavorite: !rating.isFavorite }
+            });
+        } else {
+            console.log('DEBUG: Creating new rating for favorite toggle');
+            await prisma.rating.create({
+                data: {
+                    tmdbId: tmdbId,
+                    userId: user.id,
+                    isFavorite: true,
+                    hasSeen: false,
+                    score: 0
+                }
+            });
+        }
+
+        revalidatePath('/');
+        revalidatePath('/favorites');
+    } catch (error) {
+        console.error('ERROR in toggleFavorite:', error);
+        throw error;
+    }
 }
 
 /**
@@ -103,73 +112,103 @@ export async function resetInteraction(tmdbId: number) {
 }
 
 /**
- * Updates the rating score for a K-drama.
+ * Toggles the 'seen' status for a K-drama.
  */
-export async function updateScore(tmdbId: number, score: number) {
-    let user = await prisma.user.findUnique({
-        where: { username: 'guest_user' }
-    });
-
-    if (!user) {
-        user = await prisma.user.create({
-            data: { username: 'guest_user' }
+export async function toggleSeen(tmdbId: number) {
+    try {
+        console.log('DEBUG: toggleSeen for tmdbId:', tmdbId);
+        let user = await prisma.user.findUnique({
+            where: { username: 'guest_user' }
         });
-    }
 
-    await prisma.rating.upsert({
-        where: {
-            userId_tmdbId: {
-                userId: user.id,
-                tmdbId: tmdbId
-            }
-        },
-        update: { score },
-        create: {
-            userId: user.id,
-            tmdbId: tmdbId,
-            score,
-            hasSeen: false,
-            isFavorite: false
+        if (!user) {
+            user = await prisma.user.create({
+                data: { username: 'guest_user' }
+            });
         }
-    });
 
-    revalidatePath('/');
-    revalidatePath('/favorites');
+        const rating = await prisma.rating.findUnique({
+            where: {
+                userId_tmdbId: {
+                    userId: user.id,
+                    tmdbId: tmdbId
+                }
+            }
+        });
+
+        if (rating) {
+            await prisma.rating.update({
+                where: { id: rating.id },
+                data: { hasSeen: !rating.hasSeen }
+            });
+        } else {
+            await prisma.rating.create({
+                data: {
+                    tmdbId: tmdbId,
+                    userId: user.id,
+                    hasSeen: true,
+                    isFavorite: false,
+                    score: 0
+                }
+            });
+        }
+
+        revalidatePath('/');
+        revalidatePath('/watched');
+    } catch (error) {
+        console.error('ERROR in toggleSeen:', error);
+        throw error;
+    }
 }
 
 /**
- * Toggles the 'seen' status for a K-drama.
+ * Updates the score for a show for the guest user.
  */
-export async function toggleSeen(tmdbId: number, hasSeen: boolean) {
-    let user = await prisma.user.findUnique({
-        where: { username: 'guest_user' }
-    });
-
-    if (!user) {
-        user = await prisma.user.create({
-            data: { username: 'guest_user' }
+export async function updateScore(tmdbId: number, score: number) {
+    try {
+        console.log('DEBUG: updateScore for tmdbId:', tmdbId, 'score:', score);
+        let user = await prisma.user.findUnique({
+            where: { username: 'guest_user' }
         });
-    }
 
-    await prisma.rating.upsert({
-        where: {
-            userId_tmdbId: {
-                userId: user.id,
-                tmdbId: tmdbId
-            }
-        },
-        update: { hasSeen },
-        create: {
-            userId: user.id,
-            tmdbId: tmdbId,
-            score: 0,
-            hasSeen,
-            isFavorite: false
+        if (!user) {
+            user = await prisma.user.create({
+                data: { username: 'guest_user' }
+            });
         }
-    });
 
-    revalidatePath('/');
-    revalidatePath('/favorites');
+        const rating = await prisma.rating.findUnique({
+            where: {
+                userId_tmdbId: {
+                    userId: user.id,
+                    tmdbId: tmdbId
+                }
+            }
+        });
+
+        if (rating) {
+            await prisma.rating.update({
+                where: { id: rating.id },
+                data: { score: score }
+            });
+        } else {
+            await prisma.rating.create({
+                data: {
+                    tmdbId: tmdbId,
+                    userId: user.id,
+                    score: score,
+                    hasSeen: false,
+                    isFavorite: false
+                }
+            });
+        }
+
+        revalidatePath('/');
+        revalidatePath('/best');
+    } catch (error) {
+        console.error('ERROR in updateScore:', error);
+        throw error;
+    }
 }
 
 /**
@@ -313,55 +352,70 @@ export async function clearAllRatings() {
 export async function getInteractionStats(tmdbIds: number[]) {
     if (tmdbIds.length === 0) return [];
 
-    const stats = await prisma.rating.groupBy({
-        by: ['tmdbId'],
-        where: {
-            tmdbId: { in: tmdbIds }
-        },
-        _avg: {
-            score: true
-        },
-        _count: {
-            _all: true,
-            hasSeen: true
-        }
-    });
+    try {
+        console.log('DEBUG: Fetching interaction stats for IDs:', tmdbIds);
 
-    // Get personal stats for the guest user
-    const user = await prisma.user.findUnique({
-        where: { username: 'guest_user' },
-        include: {
-            ratings: {
-                where: { tmdbId: { in: tmdbIds } }
+        const stats = await prisma.rating.groupBy({
+            by: ['tmdbId'],
+            where: {
+                tmdbId: { in: tmdbIds }
+            },
+            _avg: {
+                score: true
+            },
+            _count: {
+                _all: true
             }
-        }
-    });
+        });
 
-    // Specifically count how many actually marked as 'seen'
-    const seenCounts = await prisma.rating.groupBy({
-        by: ['tmdbId'],
-        where: {
-            tmdbId: { in: tmdbIds },
-            hasSeen: true
-        },
-        _count: {
-            _all: true
-        }
-    });
+        // Get personal stats for the guest user
+        const user = await prisma.user.findUnique({
+            where: { username: 'guest_user' },
+            include: {
+                ratings: {
+                    where: { tmdbId: { in: tmdbIds } }
+                }
+            }
+        });
 
-    return tmdbIds.map(id => {
-        const stat = stats.find((s: any) => s.tmdbId === id);
-        const seenStat = seenCounts.find((s: any) => s.tmdbId === id);
-        const userRating = user?.ratings.find(r => r.tmdbId === id);
+        // Specifically count how many actually marked as 'seen'
+        const seenCounts = await prisma.rating.groupBy({
+            by: ['tmdbId'],
+            where: {
+                tmdbId: { in: tmdbIds },
+                hasSeen: true
+            },
+            _count: {
+                _all: true
+            }
+        });
 
-        return {
+        return tmdbIds.map(id => {
+            const stat = stats.find((s: any) => s.tmdbId === id);
+            const seenStat = seenCounts.find((s: any) => s.tmdbId === id);
+            const userRating = user?.ratings.find(r => r.tmdbId === id);
+
+            return {
+                tmdbId: id,
+                avgRating: stat?._avg?.score || 0,
+                totalRatings: stat?._count?._all || 0,
+                seenCount: seenStat?._count?._all || 0,
+                isFavorite: userRating?.isFavorite || false,
+                score: userRating?.score || 0,
+                hasSeen: userRating?.hasSeen || false
+            };
+        });
+    } catch (error: any) {
+        console.error('ERROR in getInteractionStats:', error);
+        // Return empty stats instead of crashing the whole page
+        return tmdbIds.map(id => ({
             tmdbId: id,
-            avgRating: stat?._avg.score || 0,
-            totalRatings: stat?._count._all || 0,
-            seenCount: seenStat?._count._all || 0,
-            isFavorite: userRating?.isFavorite || false,
-            score: userRating?.score || 0,
-            hasSeen: userRating?.hasSeen || false
-        };
-    });
+            avgRating: 0,
+            totalRatings: 0,
+            seenCount: 0,
+            isFavorite: false,
+            score: 0,
+            hasSeen: false
+        }));
+    }
 }

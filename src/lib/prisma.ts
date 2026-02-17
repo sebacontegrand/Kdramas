@@ -1,19 +1,47 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-import sqlite from 'better-sqlite3'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 
-import path from 'path'
+if (process.env.NODE_ENV === 'development') {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
+const prismaClientSingleton = () => {
+    console.log('DEBUG: Initializing Prisma Client. DATABASE_URL present:', !!process.env.DATABASE_URL);
+    const connectionString = process.env.DATABASE_URL
+    const pool = new pg.Pool({
+        connectionString,
+        ssl: {
+            rejectUnauthorized: false // This fixes the P1011/TLS certificate error in most development environments
+        }
+    })
+    const adapter = new PrismaPg(pool)
 
-const dbPath = path.join(process.cwd(), 'dev.db')
-const adapter = new PrismaBetterSqlite3({ url: dbPath })
-
-export const prisma =
-    globalForPrisma.prisma ||
-    new PrismaClient({
+    return new PrismaClient({
         adapter,
         log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     })
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+declare global {
+    var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>
+}
+
+// Browser-safe initialization
+let prisma: PrismaClient;
+
+if (typeof window === 'undefined') {
+    if (!globalThis.prismaGlobal) {
+        globalThis.prismaGlobal = prismaClientSingleton();
+    }
+    prisma = globalThis.prismaGlobal;
+} else {
+    // In the browser, we provide a Proxy that throws a helpful error if accessed.
+    prisma = new Proxy({} as PrismaClient, {
+        get() {
+            throw new Error('PrismaClient cannot be used in the browser.');
+        },
+    });
+}
+
+export { prisma }
