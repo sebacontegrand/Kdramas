@@ -50,7 +50,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
         const newSeen = !seen;
         setSeen(newSeen);
         setLoading(true);
-        await toggleSeen(drama.id, newSeen);
+        await toggleSeen(drama.id);
         setLoading(false);
         onInteract?.();
     };
