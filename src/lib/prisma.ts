@@ -6,8 +6,13 @@ import pg from 'pg'
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const prismaClientSingleton = () => {
-    console.log('DEBUG: Initializing Prisma Client. DATABASE_URL present:', !!process.env.DATABASE_URL);
     const connectionString = process.env.DATABASE_URL
+
+    if (!connectionString && typeof window === 'undefined') {
+        throw new Error('DATABASE_URL is missing! Please set your Supabase connection string in Vercel Environment Variables.');
+    }
+
+    console.log('DEBUG: Initializing Prisma Client. DATABASE_URL present:', !!connectionString);
     const pool = new pg.Pool({
         connectionString,
         ssl: {

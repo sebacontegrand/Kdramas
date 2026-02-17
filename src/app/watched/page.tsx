@@ -1,4 +1,6 @@
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense } from 'react';
 import { getWatched, getInteractionStats } from '@/lib/actions';
 import KdramaCard from '@/components/KdramaCard';
