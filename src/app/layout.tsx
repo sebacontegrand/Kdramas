@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   },
 };
 
+import Background from "@/components/Background";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,7 +35,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased relative min-h-screen">
+        <Background />
         {children}
       </body>
     </html>

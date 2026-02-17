@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Kdrama } from '@/lib/tmdb';
-import { submitRating, toggleFavorite } from '@/lib/actions';
+import { updateScore, toggleSeen, toggleFavorite, resetInteraction } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 
 interface InteractionStats {
@@ -40,7 +40,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
     const handleRating = async (newRating: number) => {
         setRating(newRating);
         setLoading(true);
-        await submitRating(drama.id, newRating, seen);
+        await updateScore(drama.id, newRating);
         setLoading(false);
         onInteract?.();
     };
@@ -50,8 +50,22 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
         const newSeen = !seen;
         setSeen(newSeen);
         setLoading(true);
-        await submitRating(drama.id, rating, newSeen);
+        await toggleSeen(drama.id, newSeen);
         setLoading(false);
+        onInteract?.();
+    };
+
+    // Reset all interactions for this card
+    const handleReset = async () => {
+        if (!confirm(`Reset all interactions for "${drama.name}"?`)) return;
+        setLoading(true);
+        // Optimistic UI reset
+        setRating(0);
+        setSeen(false);
+        setIsFavorite(false);
+        await resetInteraction(drama.id);
+        setLoading(false);
+        router.refresh();
         onInteract?.();
     };
 
@@ -110,19 +124,29 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                 )}
 
                 {/* Heart / Favorite Toggle Button */}
-                <button
-                    onClick={handleFavorite}
-                    disabled={loading}
-                    className="absolute bottom-3 right-3 p-2.5 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm shadow-lg border border-zinc-100 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 group"
-                    aria-label={initialStats?.isFavorite ? "Remove from favorites" : "Add to favorites"}
-                >
-                    <HeartIcon
-                        className={`h-5 w-5 transition-colors ${isFavorite
-                            ? 'fill-rose-500 text-rose-500'
-                            : 'text-zinc-400 group-hover:text-rose-400'
-                            }`}
-                    />
-                </button>
+                <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+                    <button
+                        onClick={handleReset}
+                        disabled={loading}
+                        className="p-2.5 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm shadow-lg border border-zinc-100 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 text-zinc-400 hover:text-rose-600"
+                        title="Reset all stats for this drama"
+                    >
+                        <ResetIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                        onClick={handleFavorite}
+                        disabled={loading}
+                        className="p-2.5 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm shadow-lg border border-zinc-100 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 group"
+                        aria-label={initialStats?.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                    >
+                        <HeartIcon
+                            className={`h-5 w-5 transition-colors ${isFavorite
+                                ? 'fill-rose-500 text-rose-500'
+                                : 'text-zinc-400 group-hover:text-rose-400'
+                                }`}
+                        />
+                    </button>
+                </div>
             </div>
 
             {/* Info Content */}
@@ -184,7 +208,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Rate</span>
                         <div className="flex gap-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
                                 <button
                                     key={star}
                                     disabled={loading}
@@ -193,7 +217,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                                     className={`transition-transform active:scale-90 ${loading ? 'opacity-50 cursor-wait' : ''}`}
                                 >
                                     <StarIcon
-                                        className={`h-3.5 w-3.5 ${star <= (rating || 0)
+                                        className={`h-3 w-3 ${star <= (rating || 0)
                                             ? 'fill-amber-400 text-amber-400'
                                             : 'text-zinc-200 dark:text-zinc-700'
                                             }`}
@@ -220,6 +244,13 @@ function HeartIcon({ className }: { className?: string }) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
             <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001Z" />
+        </svg>
+    );
+}
+function ResetIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
         </svg>
     );
 }

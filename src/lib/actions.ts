@@ -80,11 +80,32 @@ export async function getFavorites() {
 }
 
 /**
- * Submits or updates a rating for a K-drama.
- * For this simple version, we'll use a hardcoded "Guest" user.
+ * Resets all interactions for a specific K-drama.
  */
-export async function submitRating(tmdbId: number, score: number, hasSeen: boolean) {
-    // 1. Ensure a default user exists for this simple interaction version
+export async function resetInteraction(tmdbId: number) {
+    const user = await prisma.user.findUnique({
+        where: { username: 'guest_user' }
+    });
+
+    if (!user) return;
+
+    await prisma.rating.deleteMany({
+        where: {
+            userId: user.id,
+            tmdbId: tmdbId
+        }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/favorites');
+    revalidatePath('/watched');
+    revalidatePath('/best');
+}
+
+/**
+ * Updates the rating score for a K-drama.
+ */
+export async function updateScore(tmdbId: number, score: number) {
     let user = await prisma.user.findUnique({
         where: { username: 'guest_user' }
     });
@@ -95,7 +116,6 @@ export async function submitRating(tmdbId: number, score: number, hasSeen: boole
         });
     }
 
-    // 2. Upsert the rating
     await prisma.rating.upsert({
         where: {
             userId_tmdbId: {
@@ -103,19 +123,188 @@ export async function submitRating(tmdbId: number, score: number, hasSeen: boole
                 tmdbId: tmdbId
             }
         },
-        update: {
-            score: score,
-            hasSeen: hasSeen
-        },
+        update: { score },
         create: {
             userId: user.id,
             tmdbId: tmdbId,
-            score: score,
-            hasSeen: hasSeen
+            score,
+            hasSeen: false,
+            isFavorite: false
         }
     });
 
     revalidatePath('/');
+    revalidatePath('/favorites');
+}
+
+/**
+ * Toggles the 'seen' status for a K-drama.
+ */
+export async function toggleSeen(tmdbId: number, hasSeen: boolean) {
+    let user = await prisma.user.findUnique({
+        where: { username: 'guest_user' }
+    });
+
+    if (!user) {
+        user = await prisma.user.create({
+            data: { username: 'guest_user' }
+        });
+    }
+
+    await prisma.rating.upsert({
+        where: {
+            userId_tmdbId: {
+                userId: user.id,
+                tmdbId: tmdbId
+            }
+        },
+        update: { hasSeen },
+        create: {
+            userId: user.id,
+            tmdbId: tmdbId,
+            score: 0,
+            hasSeen,
+            isFavorite: false
+        }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/favorites');
+}
+
+/**
+ * Fetches all watched K-dramas for the guest user.
+ */
+export async function getWatched() {
+    const user = await prisma.user.findUnique({
+        where: { username: 'guest_user' },
+        include: {
+            ratings: {
+                where: { hasSeen: true }
+            }
+        }
+    });
+
+    if (!user || user.ratings.length === 0) return [];
+
+    const watchedIds = user.ratings.map(r => r.tmdbId);
+    const dramas = await Promise.all(
+        watchedIds.map(id => fetchKdramaById(id))
+    );
+
+    return dramas.filter((d): d is any => d !== null);
+}
+
+/**
+ * Fetches the user's rated K-dramas sorted by score (descending).
+ */
+export async function getTopRated() {
+    const user = await prisma.user.findUnique({
+        where: { username: 'guest_user' },
+        include: {
+            ratings: {
+                where: { score: { gt: 0 } },
+                orderBy: { score: 'desc' }
+            }
+        }
+    });
+
+    if (!user || user.ratings.length === 0) return [];
+
+    // Map through ratings to maintain the database order
+    const dramas = await Promise.all(
+        user.ratings.map(async (rating) => {
+            const drama = await fetchKdramaById(rating.tmdbId);
+            return drama;
+        })
+    );
+
+    return dramas.filter((d): d is any => d !== null);
+}
+
+/**
+ * Clears all favorites for the guest user.
+ */
+export async function clearAllFavorites() {
+    const user = await prisma.user.findUnique({
+        where: { username: 'guest_user' }
+    });
+
+    if (!user) return;
+
+    await prisma.rating.updateMany({
+        where: { userId: user.id },
+        data: { isFavorite: false }
+    });
+
+    // Cleanup: Remove records that have no interactions left
+    await prisma.rating.deleteMany({
+        where: {
+            userId: user.id,
+            isFavorite: false,
+            hasSeen: false,
+            score: 0
+        }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/favorites');
+}
+
+/**
+ * Clears all watched status for the guest user.
+ */
+export async function clearAllWatched() {
+    const user = await prisma.user.findUnique({
+        where: { username: 'guest_user' }
+    });
+
+    if (!user) return;
+
+    await prisma.rating.updateMany({
+        where: { userId: user.id },
+        data: { hasSeen: false }
+    });
+
+    await prisma.rating.deleteMany({
+        where: {
+            userId: user.id,
+            isFavorite: false,
+            hasSeen: false,
+            score: 0
+        }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/watched');
+}
+
+/**
+ * Clears all ratings for the guest user.
+ */
+export async function clearAllRatings() {
+    const user = await prisma.user.findUnique({
+        where: { username: 'guest_user' }
+    });
+
+    if (!user) return;
+
+    await prisma.rating.updateMany({
+        where: { userId: user.id },
+        data: { score: 0 }
+    });
+
+    await prisma.rating.deleteMany({
+        where: {
+            userId: user.id,
+            isFavorite: false,
+            hasSeen: false,
+            score: 0
+        }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/best');
 }
 
 /**

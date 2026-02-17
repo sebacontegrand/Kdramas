@@ -27,8 +27,9 @@ export async function fetchKdramas(page: number = 1, originCountry: string = 'KR
     }
 
     try {
+        const originParam = originCountry === 'all' ? '' : `&with_origin_country=${originCountry}`;
         const response = await fetch(
-            `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&with_origin_country=${originCountry}&sort_by=popularity.desc&page=${page}`
+            `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}${originParam}&sort_by=popularity.desc&page=${page}`
         );
         const data = await response.json();
 

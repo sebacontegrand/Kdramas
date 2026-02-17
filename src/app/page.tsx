@@ -5,8 +5,9 @@ import { getKdramas, getInteractionStats } from '@/lib/actions';
 import { Kdrama } from '@/lib/tmdb';
 import KdramaCard from '@/components/KdramaCard';
 import Link from 'next/link';
+import OriginLanding from '@/components/OriginLanding';
 
-type SortOption = 'popularity' | 'latest' | 'oldest' | 'rating-highest' | 'rating-lowest';
+type SortOption = 'default' | 'popularity' | 'latest' | 'oldest' | 'rating-highest' | 'rating-lowest';
 
 export default function Home() {
   const [kdramas, setKdramas] = useState<Kdrama[]>([]);
@@ -18,10 +19,25 @@ export default function Home() {
   const hasMoreRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedActor, setSelectedActor] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('popularity');
+  const [sortBy, setSortBy] = useState<SortOption>('default');
   const [originCountry, setOriginCountry] = useState('KR');
   const [allActors, setAllActors] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if onboarding was already shown this session
+  useEffect(() => {
+    const hasOnboarded = sessionStorage.getItem('has_onboarded');
+    if (!hasOnboarded) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOriginSelect = (origin: string) => {
+    setOriginCountry(origin);
+    setShowOnboarding(false);
+    sessionStorage.setItem('has_onboarded', 'true');
+  };
 
   const refreshStats = useCallback(async (ids: number[]) => {
     if (ids.length === 0) return;
@@ -103,6 +119,7 @@ export default function Home() {
       return matchesSearch && matchesActor;
     })
     .sort((a, b) => {
+      if (sortBy === 'default') return 0;
       if (sortBy === 'popularity') return (b.popularity || 0) - (a.popularity || 0);
       if (sortBy === 'latest') return new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime();
       if (sortBy === 'oldest') return new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime();
@@ -116,7 +133,8 @@ export default function Home() {
     });
 
   return (
-    <div className="min-h-screen bg-sage-50/50 transition-colors duration-500">
+    <div className="min-h-screen bg-transparent transition-colors duration-500">
+      {showOnboarding && <OriginLanding onSelect={handleOriginSelect} />}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage-100/50 px-6 py-6 md:px-12">
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -139,6 +157,20 @@ export default function Home() {
                 >
                   <HeartIcon className="h-4 w-4 fill-rose-500" />
                   Favorites
+                </Link>
+                <Link
+                  href="/watched"
+                  className="flex items-center gap-2 px-4 py-2 bg-sage-50 text-sage-600 rounded-xl text-sm font-bold border border-sage-100/50 hover:bg-sage-100 transition-colors"
+                >
+                  <CheckIcon className="h-4 w-4 text-sage-500" />
+                  Watched
+                </Link>
+                <Link
+                  href="/best"
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-sm font-bold border border-amber-100/50 hover:bg-amber-100 transition-colors"
+                >
+                  <TrophyIcon className="h-4 w-4 text-amber-500" />
+                  Best
                 </Link>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
@@ -209,6 +241,7 @@ export default function Home() {
                   aria-label="Sort options"
                   className="w-full px-4 py-2.5 bg-sage-100/30 border border-transparent rounded-2xl text-sm focus:outline-none focus:bg-white focus:border-sage-200 transition-all font-medium appearance-none cursor-pointer pr-10"
                 >
+                  <option value="default">Default (Featured)</option>
                   <option value="popularity">TMDB Popularity</option>
                   <option value="rating-highest">Highest Community Rating</option>
                   <option value="rating-lowest">Lowest Community Rating</option>
@@ -261,7 +294,7 @@ export default function Home() {
               We couldn't find any dramas matching your search or filters. Try reset or explore more.
             </p>
             <button
-              onClick={() => { setSearchTerm(''); setSelectedActor(''); setSortBy('popularity'); }}
+              onClick={() => { setSearchTerm(''); setSelectedActor(''); setSortBy('default'); }}
               className="mt-6 text-sm font-bold text-sage-600 hover:text-sage-700 underline underline-offset-4"
             >
               Clear all filters
@@ -308,6 +341,22 @@ function HeartIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001Z" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+    </svg>
+  );
+}
+
+function TrophyIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0V12m-9 0V4.875c0-.621.504-1.125 1.125-1.125h12.75c.621 0 1.125.504 1.125 1.125V12M12 12h.008v.008H12V12Z" />
     </svg>
   );
 }
