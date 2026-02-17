@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { getKdramas, getInteractionStats } from '@/lib/actions';
 import { Kdrama } from '@/lib/tmdb';
 import KdramaCard from '@/components/KdramaCard';
+import Link from 'next/link';
 
 type SortOption = 'popularity' | 'latest' | 'oldest' | 'rating-highest' | 'rating-lowest';
 
@@ -106,13 +107,22 @@ export default function Home() {
                   Streaming info • Community Stats • Multi-Origin
                 </p>
               </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 bg-sage-100 text-sage-700 rounded-xl text-sm font-bold sm:hidden"
-              >
-                <SearchIcon className="h-4 w-4" />
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </button>
+              <div className="flex gap-3">
+                <Link
+                  href="/favorites"
+                  className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold border border-rose-100/50 hover:bg-rose-100 transition-colors"
+                >
+                  <HeartIcon className="h-4 w-4 fill-rose-500" />
+                  Favorites
+                </Link>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-sage-100 text-sage-700 rounded-xl text-sm font-bold sm:hidden"
+                >
+                  <SearchIcon className="h-4 w-4" />
+                  {showFilters ? 'Hide Filters' : 'Show Filters'}
+                </button>
+              </div>
             </div>
 
             <div className={`${showFilters ? 'grid' : 'hidden'} sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-300`}>
@@ -265,6 +275,14 @@ function KdramaIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 20.25h12m-7.5-3v3m3-3v3m-10.125-3h17.25c.621 0 1.125-.504 1.125-1.125V4.875c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125Z" />
+    </svg>
+  );
+}
+
+function HeartIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001Z" />
     </svg>
   );
 }

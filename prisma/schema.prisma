@@ -18,6 +18,7 @@ model Rating {
   id        String   @id @default(cuid())
   score     Int      // 1-5
   hasSeen   Boolean  @default(false)
+  isFavorite Boolean @default(false)
   tmdbId    Int
   user      User     @relation(fields: [userId], references: [id])
   userId    String
