@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Kdrama } from '@/lib/tmdb';
 import { submitRating, toggleFavorite } from '@/lib/actions';
@@ -22,7 +22,17 @@ interface KdramaCardProps {
 export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCardProps) {
     const [rating, setRating] = useState(initialStats?.score || 0);
     const [seen, setSeen] = useState(initialStats?.hasSeen || false);
+    const [isFavorite, setIsFavorite] = useState(initialStats?.isFavorite || false);
     const [loading, setLoading] = useState(false);
+
+    // Sync state when props change
+    useEffect(() => {
+        if (initialStats) {
+            setRating(initialStats.score || 0);
+            setSeen(initialStats.hasSeen || false);
+            setIsFavorite(initialStats.isFavorite || false);
+        }
+    }, [initialStats]);
 
     // Update rating state and save to DB
     const handleRating = async (newRating: number) => {
@@ -47,6 +57,8 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
     const handleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        const newFavorite = !isFavorite;
+        setIsFavorite(newFavorite);
         setLoading(true);
         await toggleFavorite(drama.id);
         setLoading(false);
@@ -102,7 +114,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                     aria-label={initialStats?.isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
                     <HeartIcon
-                        className={`h-5 w-5 transition-colors ${initialStats?.isFavorite
+                        className={`h-5 w-5 transition-colors ${isFavorite
                             ? 'fill-rose-500 text-rose-500'
                             : 'text-zinc-400 group-hover:text-rose-400'
                             }`}

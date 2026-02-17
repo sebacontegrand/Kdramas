@@ -22,9 +22,9 @@ export default function Home() {
 
   const refreshStats = useCallback(async (ids: number[]) => {
     const stats = await getInteractionStats(ids);
-    const statsMap: Record<number, { avgRating: number, seenCount: number }> = {};
+    const statsMap: Record<number, any> = {};
     stats.forEach(s => {
-      statsMap[s.tmdbId] = { avgRating: s.avgRating, seenCount: s.seenCount };
+      statsMap[s.tmdbId] = s;
     });
     setInteractionStats(prev => ({ ...prev, ...statsMap }));
   }, []);
