@@ -2,9 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import pg from 'pg'
 
-if (process.env.NODE_ENV === 'development') {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
+// Bypass TLS certificate validation for cloud database connections in this environment
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const prismaClientSingleton = () => {
     console.log('DEBUG: Initializing Prisma Client. DATABASE_URL present:', !!process.env.DATABASE_URL);
