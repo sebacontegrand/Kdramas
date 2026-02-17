@@ -26,12 +26,14 @@
   --font-serif: 'Noto Serif JP', serif;
 }
 
+html,
 body {
   background-color: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   position: relative;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 @keyframes blob-float {

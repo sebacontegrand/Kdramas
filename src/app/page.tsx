@@ -150,7 +150,7 @@ export default function Home() {
                   Streaming info • Community Stats • Multi-Origin
                 </p>
               </div>
-              <div className="flex gap-3 mt-4">
+              <div className="flex flex-wrap gap-2 sm:gap-3 mt-4">
                 <Link
                   href="/favorites"
                   className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold border border-rose-100/50 hover:bg-rose-100 transition-colors"

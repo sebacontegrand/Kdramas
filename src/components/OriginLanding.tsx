@@ -26,7 +26,7 @@ export default function OriginLanding({ onSelect }: OriginLandingProps) {
     };
 
     return (
-        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 transition-all duration-1000 ease-in-out ${isVisible ? 'bg-white/40 dark:bg-black/40 backdrop-blur-2xl' : 'bg-transparent backdrop-blur-0 pointer-events-none opacity-0'}`}>
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 transition-all duration-1000 ease-in-out overflow-hidden ${isVisible ? 'bg-white/40 dark:bg-black/40 backdrop-blur-2xl' : 'bg-transparent backdrop-blur-0 pointer-events-none opacity-0'}`}>
             <div className={`max-w-4xl w-full transition-all duration-700 transform ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'}`}>
                 <div className="text-center mb-8 sm:mb-12">
                     <div className="inline-block px-4 py-1.5 rounded-full bg-sage-100 dark:bg-sage-900/50 border border-sage-200 dark:border-sage-800 text-sage-600 dark:text-sage-400 font-bold text-[10px] uppercase tracking-widest mb-6 animate-bounce">
