@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Kdrama } from '@/lib/tmdb';
 import { submitRating, toggleFavorite } from '@/lib/actions';
+import { useRouter } from 'next/navigation';
 
 interface InteractionStats {
     avgRating: number;
@@ -20,6 +21,7 @@ interface KdramaCardProps {
 }
 
 export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCardProps) {
+    const router = useRouter();
     const [rating, setRating] = useState(initialStats?.score || 0);
     const [seen, setSeen] = useState(initialStats?.hasSeen || false);
     const [isFavorite, setIsFavorite] = useState(initialStats?.isFavorite || false);
@@ -62,6 +64,7 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
         setLoading(true);
         await toggleFavorite(drama.id);
         setLoading(false);
+        router.refresh();
         onInteract?.();
     };
 

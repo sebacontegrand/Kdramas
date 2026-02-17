@@ -122,6 +122,8 @@ export async function submitRating(tmdbId: number, score: number, hasSeen: boole
  * Fetches interaction stats for a list of TMDB IDs.
  */
 export async function getInteractionStats(tmdbIds: number[]) {
+    if (tmdbIds.length === 0) return [];
+
     const stats = await prisma.rating.groupBy({
         by: ['tmdbId'],
         where: {

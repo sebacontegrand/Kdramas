@@ -10,9 +10,12 @@ type SortOption = 'popularity' | 'latest' | 'oldest' | 'rating-highest' | 'ratin
 
 export default function Home() {
   const [kdramas, setKdramas] = useState<Kdrama[]>([]);
-  const [interactionStats, setInteractionStats] = useState<Record<number, { avgRating: number, seenCount: number }>>({});
+  const [interactionStats, setInteractionStats] = useState<Record<number, { avgRating: number, seenCount: number, isFavorite?: boolean, score?: number, hasSeen?: boolean }>>({});
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const isLoadingRef = useRef(false);
+  const [hasMore, setHasMore] = useState(true);
+  const hasMoreRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedActor, setSelectedActor] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
@@ -21,6 +24,7 @@ export default function Home() {
   const [showFilters, setShowFilters] = useState(false);
 
   const refreshStats = useCallback(async (ids: number[]) => {
+    if (ids.length === 0) return;
     const stats = await getInteractionStats(ids);
     const statsMap: Record<number, any> = {};
     stats.forEach(s => {
@@ -31,36 +35,49 @@ export default function Home() {
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback((node: HTMLDivElement | null) => {
-    if (loading) return;
+    if (isLoadingRef.current || !hasMoreRef.current) return;
     if (observer.current) observer.current.disconnect();
+
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
+      if (entries[0].isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
         setPage(prev => prev + 1);
       }
     });
     if (node) observer.current.observe(node);
-  }, [loading]);
+  }, []);
 
   // Reset when origin changes
   useEffect(() => {
     setPage(1);
     setKdramas([]);
+    setHasMore(true);
+    hasMoreRef.current = true;
   }, [originCountry]);
 
   useEffect(() => {
     async function loadData() {
+      if (isLoadingRef.current || !hasMoreRef.current) return;
+
       setLoading(true);
+      isLoadingRef.current = true;
+
       const data = await getKdramas(page, originCountry);
+
+      if (data.length === 0) {
+        setHasMore(false);
+        hasMoreRef.current = false;
+        setLoading(false);
+        isLoadingRef.current = false;
+        return;
+      }
 
       const newIds = data.map(d => d.id);
       await refreshStats(newIds);
 
       setKdramas(prev => {
         const newData = [...prev, ...data];
-        // Unique elements by ID
         const uniqueData = Array.from(new Map(newData.map(item => [item.id, item])).values());
 
-        // Update actor list from unique data
         const actors = new Set<string>();
         uniqueData.forEach(d => d.characters?.forEach((c: { actorName: string }) => actors.add(c.actorName)));
         setAllActors(Array.from(actors).sort());
@@ -68,7 +85,13 @@ export default function Home() {
         return uniqueData;
       });
 
+      if (data.length < 10) {
+        setHasMore(false);
+        hasMoreRef.current = false;
+      }
+
       setLoading(false);
+      isLoadingRef.current = false;
     }
     loadData();
   }, [page, originCountry, refreshStats]);
@@ -102,12 +125,14 @@ export default function Home() {
                 Asian Drama Board
               </h1>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-sage-600 bg-sage-100 px-2 py-0.5 rounded">Argentina View</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-sage-600 bg-sage-100 px-2 py-0.5 rounded flex items-center gap-1.5">
+                  🇦🇷 Argentina View
+                </span>
                 <p className="text-sm text-sage-600 font-medium">
                   Streaming info • Community Stats • Multi-Origin
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-4">
                 <Link
                   href="/favorites"
                   className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold border border-rose-100/50 hover:bg-rose-100 transition-colors"
