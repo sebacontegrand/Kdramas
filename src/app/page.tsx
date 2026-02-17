@@ -107,7 +107,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
               {/* Origin Country */}
               <div className="relative group">
                 <select
@@ -182,7 +182,7 @@ export default function Home() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-12 md:px-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
           {sortedAndFilteredDramas.map((drama, index) => (
             <div
               key={`${drama.id}-${index}`}
