@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getKdramas, getInteractionStats } from '@/lib/actions';
+import { getKdramas, getInteractionStats, searchKdramasAction } from '@/lib/actions';
 import { Kdrama } from '@/lib/tmdb';
 import KdramaCard from '@/components/KdramaCard';
 import Link from 'next/link';
@@ -18,6 +18,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const hasMoreRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedActor, setSelectedActor] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [originCountry, setOriginCountry] = useState('KR');
@@ -62,13 +63,21 @@ export default function Home() {
     if (node) observer.current.observe(node);
   }, []);
 
-  // Reset when origin changes
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Reset when origin or search changes
   useEffect(() => {
     setPage(1);
     setKdramas([]);
     setHasMore(true);
     hasMoreRef.current = true;
-  }, [originCountry]);
+  }, [originCountry, debouncedSearchTerm]);
 
   useEffect(() => {
     async function loadData() {
@@ -77,7 +86,17 @@ export default function Home() {
       setLoading(true);
       isLoadingRef.current = true;
 
-      const data = await getKdramas(page, originCountry);
+      // If there is a debounced search term, use searchKdramasAction.
+      // Note: TMDB search endpoint doesn't support with_origin_country out of the box in the same way,
+      // but we will apply the search action.
+      let data: Kdrama[] = [];
+      if (debouncedSearchTerm.trim() !== '') {
+        data = await searchKdramasAction(debouncedSearchTerm, page);
+        // We can optionally filter searched data further locally by originCountry if needed, 
+        // but typically TMDB search ignores it.
+      } else {
+        data = await getKdramas(page, originCountry);
+      }
 
       if (data.length === 0) {
         setHasMore(false);
@@ -91,7 +110,9 @@ export default function Home() {
       await refreshStats(newIds);
 
       setKdramas(prev => {
-        const newData = [...prev, ...data];
+        // If it's a new search or new origin, prev should be empty due to previous useEffect,
+        // but just in case, we append.
+        const newData = page === 1 ? data : [...prev, ...data];
         const uniqueData = Array.from(new Map(newData.map(item => [item.id, item])).values());
 
         const actors = new Set<string>();
@@ -110,13 +131,13 @@ export default function Home() {
       isLoadingRef.current = false;
     }
     loadData();
-  }, [page, originCountry, refreshStats]);
+  }, [page, originCountry, debouncedSearchTerm, refreshStats]);
 
   const sortedAndFilteredDramas = kdramas
     .filter(drama => {
-      const matchesSearch = drama.name.toLowerCase().includes(searchTerm.toLowerCase());
+      // We removed the local search filter here because we are fetching search results from server.
       const matchesActor = !selectedActor || drama.characters?.some((c: { actorName: string }) => c.actorName === selectedActor);
-      return matchesSearch && matchesActor;
+      return matchesActor;
     })
     .sort((a, b) => {
       if (sortBy === 'default') return 0;
@@ -139,15 +160,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-serif font-bold text-zinc-900 tracking-tight">
-                Asian Drama Board
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl font-black text-rose-600 tracking-tighter transition-all duration-300 hover:scale-[1.02] cursor-default drop-shadow-sm">
+                  KDRAMA FEVER
+                </h1>
+                <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+              </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-sage-600 bg-sage-100 px-2 py-0.5 rounded flex items-center gap-1.5">
-                  🇦🇷 Argentina View
+                <span className="text-[10px] font-black uppercase tracking-widest text-white bg-rose-500 px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                  🇦🇷 AR EDITION
                 </span>
-                <p className="text-sm text-sage-600 font-medium">
-                  Streaming info • Community Stats • Multi-Origin
+                <p className="text-sm text-sage-600 font-bold italic">
+                  Your Ultimate Hallyu Vault • Community Hot Takes • Global Tracking
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-3 mt-4">
@@ -258,7 +282,7 @@ export default function Home() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-12 md:px-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
           {sortedAndFilteredDramas.map((drama, index) => (
             <div
               key={`${drama.id}-${index}`}

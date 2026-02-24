@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: Interactive Discovery
+        - heading "Deep Dimensions" [level=1] [ref=e7]:
+          - text: Deep
+          - text: Dimensions
+        - paragraph [ref=e8]: Step into a new realm of television. Choose your origin to begin the journey.
+      - generic [ref=e9]:
+        - button "🌎 Worldwide" [ref=e11]:
+          - generic:
+            - generic: 🌎
+          - generic:
+            - generic: Worldwide
+        - button "🇰🇷 South Korea" [active] [ref=e15]:
+          - generic:
+            - generic: 🇰🇷
+          - generic:
+            - generic: South Korea
+        - button "🇨🇳 China" [ref=e19]:
+          - generic:
+            - generic: 🇨🇳
+          - generic:
+            - generic: China
+        - button "🇯🇵 Japan" [ref=e23]:
+          - generic:
+            - generic: 🇯🇵
+          - generic:
+            - generic: Japan
+    - banner [ref=e26]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - heading "Asian Drama Board" [level=1] [ref=e30]
+          - generic [ref=e31]:
+            - generic [ref=e32]: 🇦🇷 Argentina View
+            - paragraph [ref=e33]: Streaming info • Community Stats • Multi-Origin
+          - generic [ref=e34]:
+            - link "Favorites" [ref=e35] [cursor=pointer]:
+              - /url: /favorites
+              - img [ref=e36]
+              - text: Favorites
+            - link "Watched" [ref=e38] [cursor=pointer]:
+              - /url: /watched
+              - img [ref=e39]
+              - text: Watched
+            - link "Best" [ref=e41] [cursor=pointer]:
+              - /url: /best
+              - img [ref=e42]
+              - text: Best
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - combobox "Filter by origin country" [ref=e46] [cursor=pointer]:
+              - option "🇰🇷 Korean" [selected]
+              - option "🇯🇵 Japanese"
+              - option "🇨🇳 Chinese"
+            - generic:
+              - img
+          - generic [ref=e47]:
+            - generic:
+              - img
+            - textbox "Search dramas" [ref=e48]:
+              - /placeholder: Search...
+          - generic [ref=e49]:
+            - combobox "Filter by actor" [ref=e50] [cursor=pointer]:
+              - option "All Actors" [selected]
+            - generic:
+              - img
+          - generic [ref=e51]:
+            - combobox "Sort options" [ref=e52] [cursor=pointer]:
+              - option "Default (Featured)" [selected]
+              - option "TMDB Popularity"
+              - option "Highest Community Rating"
+              - option "Lowest Community Rating"
+              - option "Latest Released"
+              - option "Oldest Released"
+            - generic:
+              - img
+    - main [ref=e53]
+    - contentinfo [ref=e58]:
+      - paragraph [ref=e59]: Powered by TMDB API • Regional Content Argentina
+      - paragraph [ref=e60]: © 2026 K-Rating App
+  - generic [ref=e65] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e66]:
+      - img [ref=e67]
+    - generic [ref=e70]:
+      - button "Open issues overlay" [ref=e71]:
+        - generic [ref=e72]:
+          - generic [ref=e73]: "2"
+          - generic [ref=e74]: "3"
+        - generic [ref=e75]:
+          - text: Issue
+          - generic [ref=e76]: s
+      - button "Collapse issues badge" [ref=e77]:
+        - img [ref=e78]
+  - alert [ref=e80]
+```

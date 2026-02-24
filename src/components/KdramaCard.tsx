@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Kdrama } from '@/lib/tmdb';
 import { updateScore, toggleSeen, toggleFavorite, resetInteraction } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
@@ -86,17 +87,19 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
         <article className="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-xl dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
             {/* Poster Image */}
             <div className="relative aspect-[2/3] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <Image
-                    src={drama.poster_path}
-                    alt={`Poster for ${drama.name}`}
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    unoptimized
-                />
+                <Link href={`/drama/${drama.id}`} className="absolute inset-0 z-0 overflow-hidden block">
+                    <Image
+                        src={drama.poster_path}
+                        alt={`Poster for ${drama.name}`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        unoptimized
+                    />
+                </Link>
 
                 {/* Badges Overlay */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+                <div className="absolute top-2 left-2 flex flex-col gap-1.5 pointer-events-none z-10">
                     {seen && (
                         <div className="rounded-full bg-sage-500/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm border border-white/20">
                             Watched
@@ -117,14 +120,14 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
 
                 {/* Avg Rating Floating Badge */}
                 {initialStats && initialStats.avgRating > 0 && (
-                    <div className="absolute top-2 right-2 rounded-lg bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-2 py-1 text-[10px] font-bold text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-100 dark:border-zinc-800 flex items-center gap-1">
+                    <div className="absolute top-2 right-2 z-10 rounded-lg bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-2 py-1 text-[10px] font-bold text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-100 dark:border-zinc-800 flex items-center gap-1">
                         <StarIcon className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
                         {initialStats.avgRating.toFixed(1)}
                     </div>
                 )}
 
                 {/* Heart / Favorite Toggle Button */}
-                <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+                <div className="absolute bottom-3 right-3 z-10 flex flex-col gap-2">
                     <button
                         onClick={handleReset}
                         disabled={loading}
@@ -151,14 +154,14 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
 
             {/* Info Content */}
             <div className="p-4 space-y-3">
-                <div>
-                    <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1 leading-snug">
+                <Link href={`/drama/${drama.id}`} className="block group/title">
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1 leading-snug group-hover/title:text-sage-600 transition-colors">
                         {drama.name}
                     </h3>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                         {new Date(drama.first_air_date).getFullYear()} • {drama.watchProviders?.join(', ') || 'Various'}
                     </p>
-                </div>
+                </Link>
 
                 {/* Characters Section */}
                 <div className="space-y-1.5">

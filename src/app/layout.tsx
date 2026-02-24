@@ -3,22 +3,22 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vivid Asian Drama Board | Discover & Rate Top K-Dramas",
-  description: "Explore the most popular Asian dramas from Korea, Japan, and China. Get real-time stats, community ratings, and detailed actor information powered by TMDB.",
-  keywords: ["K-Drama", "Asian Drama", "Korean Drama", "TV Series", "Ratings", "TMDB", "Drama Board"],
-  authors: [{ name: "K-Rating Team" }],
+  title: "KDrama Fever | Your Ultimate Hallyu Vault",
+  description: "Ditch the boring boards. Dive into KDrama Fever for the hottest Korean, Japanese, and Chinese dramas. Real-time stats, community ratings, and deep actor insights.",
+  keywords: ["KDrama Fever", "Hallyu", "K-Drama", "Asian Drama", "Ratings", "TV Shows", "Drama Tracker"],
+  authors: [{ name: "Fever Team" }],
   openGraph: {
-    title: "Vivid Asian Drama Board | Discover & Rate Top Kdramas",
-    description: "Your ultimate hub for Asian drama stats and community ratings.",
-    url: "https://kdramas.example.com",
-    siteName: "Vivid Asian Drama Board",
+    title: "KDrama Fever | Your Ultimate Hallyu Vault",
+    description: "The spicy way to track, rate, and discover Asian Dramas.",
+    url: "https://kdrama-fever.com",
+    siteName: "KDrama Fever",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vivid Asian Drama Board",
-    description: "Discover and rate the best Asian dramas.",
+    title: "KDrama Fever",
+    description: "Your daily dose of Hallyu obsession.",
   },
   robots: {
     index: true,

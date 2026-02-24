@@ -1,24 +1,28 @@
-
 export const dynamic = 'force-dynamic';
 
 import { Suspense } from 'react';
 import { getFavorites, getInteractionStats } from '@/lib/actions';
 import KdramaCard from '@/components/KdramaCard';
 import ClearButton from '@/components/ClearButton';
+import ListSearch from '@/components/ListSearch';
 import Link from 'next/link';
 
-async function FavoritesList() {
+async function FavoritesList({ q }: { q: string }) {
     const favorites = await getFavorites();
 
-    if (favorites.length === 0) {
+    const filteredFavorites = q
+        ? favorites.filter((d: any) => d.name.toLowerCase().includes(q.toLowerCase()))
+        : favorites;
+
+    if (filteredFavorites.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-20 h-20 bg-sage-50 rounded-full flex items-center justify-center mb-6">
                     <HeartIcon className="h-10 w-10 text-sage-300" />
                 </div>
-                <h2 className="text-2xl font-bold text-sage-900 mb-2">No favorites yet</h2>
+                <h2 className="text-2xl font-bold text-sage-900 mb-2">No favorites found</h2>
                 <p className="text-sage-600 mb-8 max-w-md">
-                    Start exploring and click the heart icon on any K-drama to save it here for later!
+                    {q ? `No favorites matching "${q}".` : 'Start exploring and click the heart icon on any K-drama to save it here for later!'}
                 </p>
                 <Link
                     href="/"
@@ -30,12 +34,12 @@ async function FavoritesList() {
         );
     }
 
-    const ids = favorites.map((d: any) => d.id);
+    const ids = filteredFavorites.map((d: any) => d.id);
     const stats = await getInteractionStats(ids);
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
-            {favorites.map((drama: any, index: number) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
+            {filteredFavorites.map((drama: any, index: number) => (
                 <KdramaCard
                     key={`${drama.id}-${index}`}
                     drama={drama}
@@ -46,29 +50,35 @@ async function FavoritesList() {
     );
 }
 
-export default function FavoritesPage() {
+export default async function FavoritesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+    const resolvedParams = await searchParams;
+    const q = resolvedParams.q || '';
+
     return (
         <div className="min-h-screen bg-transparent selection:bg-sage-100 italic-selection">
             <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage-100/50">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="p-2 hover:bg-sage-50 rounded-xl transition-colors">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-[150px]">
+                        <Link href="/" className="p-2 hover:bg-sage-50 rounded-xl transition-colors shrink-0">
                             <ArrowLeftIcon className="h-6 w-6 text-sage-600" />
                         </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-sage-900 tracking-tight">Your Favorites</h1>
-                            <p className="text-xs font-semibold text-sage-500 uppercase tracking-widest">
+                        <div className="hidden sm:block">
+                            <h1 className="text-xl font-bold text-sage-900 tracking-tight whitespace-nowrap">Your Favorites</h1>
+                            <p className="text-xs font-semibold text-sage-500 uppercase tracking-widest whitespace-nowrap">
                                 Collection
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+
+                    <ListSearch />
+
+                    <div className="flex items-center gap-4 flex-shrink-0">
                         <ClearButton type="favorites" />
                         <div className="w-[1px] h-6 bg-sage-100 hidden md:block" />
-                        <Link href="/best" className="text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
+                        <Link href="/best" className="hidden sm:block text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
                             Best
                         </Link>
-                        <Link href="/watched" className="text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
+                        <Link href="/watched" className="hidden sm:block text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
                             Watched
                         </Link>
                     </div>
@@ -76,12 +86,12 @@ export default function FavoritesPage() {
             </header>
 
             <main className="max-w-7xl mx-auto px-6 py-12 md:px-12">
-                <Suspense fallback={<div className="animate-pulse grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8 overflow-hidden">
+                <Suspense key={q} fallback={<div className="animate-pulse grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8 overflow-hidden">
                     {[...Array(5)].map((_, i) => (
                         <div key={i} className="aspect-[2/3] bg-sage-100 rounded-2xl" />
                     ))}
                 </div>}>
-                    <FavoritesList />
+                    <FavoritesList q={q} />
                 </Suspense>
             </main>
         </div>

@@ -1,16 +1,20 @@
-
 export const dynamic = 'force-dynamic';
 
 import { Suspense } from 'react';
 import { getTopRated, getInteractionStats } from '@/lib/actions';
 import KdramaCard from '@/components/KdramaCard';
 import ClearButton from '@/components/ClearButton';
+import ListSearch from '@/components/ListSearch';
 import Link from 'next/link';
 
-async function BestList() {
+async function BestList({ q }: { q: string }) {
     const best = await getTopRated();
 
-    if (best.length === 0) {
+    const filteredBest = q
+        ? best.filter((d: any) => d.name.toLowerCase().includes(q.toLowerCase()))
+        : best;
+
+    if (filteredBest.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
@@ -18,7 +22,7 @@ async function BestList() {
                 </div>
                 <h2 className="text-2xl font-bold text-sage-900 mb-2">Finding your gems...</h2>
                 <p className="text-sage-600 mb-8 max-w-md">
-                    Rate your favorite dramas 8/10 or higher to see them featured in this "Best" collection!
+                    {q ? `No highest rated dramas match "${q}".` : 'Rate your favorite dramas 8/10 or higher to see them featured in this "Best" collection!'}
                 </p>
                 <Link
                     href="/"
@@ -30,14 +34,14 @@ async function BestList() {
         );
     }
 
-    const ids = best.map((d: any) => d.id);
+    const ids = filteredBest.map((d: any) => d.id);
     const stats = await getInteractionStats(ids);
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
-            {best.map((drama: any, index: number) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
+            {filteredBest.map((drama: any, index: number) => (
                 <div key={`${drama.id}-${index}`} className="relative">
-                    {index < 3 && (
+                    {index < 3 && !q && (
                         <div className={`absolute -top-2 -left-2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 border-white font-bold text-xs ${index === 0 ? 'bg-amber-400 text-amber-950' :
                             index === 1 ? 'bg-slate-300 text-slate-800' :
                                 'bg-orange-400 text-orange-950'
@@ -55,29 +59,35 @@ async function BestList() {
     );
 }
 
-export default function BestPage() {
+export default async function BestPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+    const resolvedParams = await searchParams;
+    const q = resolvedParams.q || '';
+
     return (
         <div className="min-h-screen bg-transparent">
             <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-sage-100/50">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="p-2 hover:bg-sage-50 rounded-xl transition-colors">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-[150px]">
+                        <Link href="/" className="p-2 hover:bg-sage-50 rounded-xl transition-colors shrink-0">
                             <ArrowLeftIcon className="h-6 w-6 text-sage-600" />
                         </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-sage-900 tracking-tight">My Best Gems</h1>
-                            <p className="text-xs font-semibold text-amber-500 uppercase tracking-widest">
+                        <div className="hidden sm:block">
+                            <h1 className="text-xl font-bold text-sage-900 tracking-tight whitespace-nowrap">My Best Gems</h1>
+                            <p className="text-xs font-semibold text-amber-500 uppercase tracking-widest whitespace-nowrap">
                                 The Elite List
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+
+                    <ListSearch />
+
+                    <div className="flex items-center gap-4 flex-shrink-0">
                         <ClearButton type="best" />
                         <div className="w-[1px] h-6 bg-sage-100 hidden md:block" />
-                        <Link href="/favorites" className="text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
+                        <Link href="/favorites" className="hidden sm:block text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
                             Favorites
                         </Link>
-                        <Link href="/watched" className="text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
+                        <Link href="/watched" className="hidden sm:block text-sm font-bold text-sage-600 hover:text-sage-700 transition-colors">
                             Watched
                         </Link>
                     </div>
@@ -85,12 +95,12 @@ export default function BestPage() {
             </header>
 
             <main className="max-w-7xl mx-auto px-6 py-12 md:px-12">
-                <Suspense fallback={<div className="animate-pulse grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8 overflow-hidden">
+                <Suspense key={q} fallback={<div className="animate-pulse grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8 overflow-hidden">
                     {[...Array(5)].map((_, i) => (
                         <div key={i} className="aspect-[2/3] bg-sage-100 rounded-2xl" />
                     ))}
                 </div>}>
-                    <BestList />
+                    <BestList q={q} />
                 </Suspense>
             </main>
         </div>

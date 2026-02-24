@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { fetchKdramas, fetchKdramaById } from './tmdb';
+import { fetchKdramas, fetchKdramaById, searchKdramas } from './tmdb';
 
 /**
  * Server Action to fetch K-dramas from TMDB.
@@ -11,6 +11,14 @@ import { fetchKdramas, fetchKdramaById } from './tmdb';
 export async function getKdramas(page: number = 1, originCountry: string = 'KR') {
     return await fetchKdramas(page, originCountry);
 }
+
+/**
+ * Server Action to search K-dramas from TMDB globally.
+ */
+export async function searchKdramasAction(query: string, page: number = 1) {
+    return await searchKdramas(query, page);
+}
+
 
 /**
  * Toggles a show as favorite for the guest user.
