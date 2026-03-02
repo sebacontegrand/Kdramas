@@ -42,7 +42,7 @@ function LiquidBackground() {
             uniforms: {
                 uTime: { value: 0 },
                 uMouse: { value: new THREE.Vector2(0, 0) },
-                uColor: { value: new THREE.Color('#637d6e') } // Sage color
+                uColor: { value: new THREE.Color('#e11d48') } // Rose color
             },
             vertexShader: `
                 uniform float uTime;
@@ -270,15 +270,15 @@ export default function OriginLanding({ onSelect }: OriginLandingProps) {
                             transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
                             className="text-center mb-12 sm:mb-20"
                         >
-                            <div className="inline-block px-5 py-2 rounded-full bg-sage-500/10 border border-sage-500/20 text-sage-600 dark:text-sage-400 font-black text-[10px] uppercase tracking-[0.3em] mb-8">
-                                Interactive Discovery
+                            <div className="inline-block px-5 py-2 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-black text-[10px] uppercase tracking-[0.3em] mb-8">
+                                Hallyu Obsession Hub
                             </div>
                             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-zinc-900 dark:text-white tracking-tighter leading-[0.9] mb-8">
-                                Deep <br />
-                                <span className="text-sage-600 dark:text-sage-400 italic font-serif">Dimensions</span>
+                                KDRAMA <br />
+                                <span className="text-rose-600 dark:text-rose-400 italic font-serif">FEVER</span>
                             </h1>
                             <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg sm:text-xl max-w-xl mx-auto">
-                                Step into a new realm of television. Choose your origin to begin the journey.
+                                Feed your obsession with the ultimate vault of Hallyu hits. Step into the scene and rate your favorites.
                             </p>
                         </motion.div>
 

@@ -5,6 +5,7 @@ import { fetchKdramaById } from '@/lib/tmdb';
 import { getInteractionStats, updateScore, toggleSeen, toggleFavorite } from '@/lib/actions';
 import KdramaDetailClient from './KdramaDetailClient';
 
+
 interface PageProps {
     params: Promise<{ id: string }>;
 }

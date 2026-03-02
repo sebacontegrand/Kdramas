@@ -9,22 +9,70 @@ import OriginLanding from '@/components/OriginLanding';
 
 type SortOption = 'default' | 'popularity' | 'latest' | 'oldest' | 'rating-highest' | 'rating-lowest';
 
+type CachedState = {
+  kdramas: Kdrama[];
+  interactionStats: Record<number, any>;
+  page: number;
+  hasMore: boolean;
+  searchTerm: string;
+  debouncedSearchTerm: string;
+  selectedActor: string;
+  sortBy: SortOption;
+  originCountry: string;
+  allActors: string[];
+};
+
+let cachedHomeState: CachedState | null = null;
+let cachedScrollY = 0;
+
 export default function Home() {
-  const [kdramas, setKdramas] = useState<Kdrama[]>([]);
-  const [interactionStats, setInteractionStats] = useState<Record<number, { avgRating: number, seenCount: number, isFavorite?: boolean, score?: number, hasSeen?: boolean }>>({});
-  const [page, setPage] = useState(1);
+  const [kdramas, setKdramas] = useState<Kdrama[]>(() => cachedHomeState?.kdramas || []);
+  const [interactionStats, setInteractionStats] = useState<Record<number, { avgRating: number, seenCount: number, isFavorite?: boolean, score?: number, hasSeen?: boolean }>>(() => cachedHomeState?.interactionStats || {});
+  const [page, setPage] = useState(() => cachedHomeState?.page || 1);
   const [loading, setLoading] = useState(false);
   const isLoadingRef = useRef(false);
-  const [hasMore, setHasMore] = useState(true);
-  const hasMoreRef = useRef(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [selectedActor, setSelectedActor] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('default');
-  const [originCountry, setOriginCountry] = useState('KR');
-  const [allActors, setAllActors] = useState<string[]>([]);
+  const [hasMore, setHasMore] = useState(() => cachedHomeState?.hasMore ?? true);
+  const hasMoreRef = useRef(cachedHomeState?.hasMore ?? true);
+  const [searchTerm, setSearchTerm] = useState(() => cachedHomeState?.searchTerm || '');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(() => cachedHomeState?.debouncedSearchTerm || '');
+  const [selectedActor, setSelectedActor] = useState(() => cachedHomeState?.selectedActor || '');
+  const [sortBy, setSortBy] = useState<SortOption>(() => cachedHomeState?.sortBy || 'default');
+  const [originCountry, setOriginCountry] = useState(() => cachedHomeState?.originCountry || 'KR');
+  const [allActors, setAllActors] = useState<string[]>(() => cachedHomeState?.allActors || []);
   const [showFilters, setShowFilters] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const isRestored = useRef(!!cachedHomeState);
+  const lastFetchedPage = useRef(cachedHomeState?.page ? cachedHomeState.page : 0);
+  const isFirstOriginMount = useRef(true);
+
+  // Keep cache up to date
+  useEffect(() => {
+    cachedHomeState = {
+      kdramas,
+      interactionStats,
+      page,
+      hasMore,
+      searchTerm,
+      debouncedSearchTerm,
+      selectedActor,
+      sortBy,
+      originCountry,
+      allActors
+    };
+  }, [kdramas, interactionStats, page, hasMore, searchTerm, debouncedSearchTerm, selectedActor, sortBy, originCountry, allActors]);
+
+  // Handle scroll restoration
+  useEffect(() => {
+    if (cachedScrollY > 0) {
+      window.scrollTo(0, cachedScrollY);
+    }
+    const handleScroll = () => {
+      cachedScrollY = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Check if onboarding was already shown this session
   useEffect(() => {
@@ -73,27 +121,33 @@ export default function Home() {
 
   // Reset when origin or search changes
   useEffect(() => {
+    if (isFirstOriginMount.current) {
+      isFirstOriginMount.current = false;
+      return;
+    }
     setPage(1);
     setKdramas([]);
     setHasMore(true);
     hasMoreRef.current = true;
+    lastFetchedPage.current = 0;
+    isRestored.current = false;
   }, [originCountry, debouncedSearchTerm]);
 
   useEffect(() => {
     async function loadData() {
       if (isLoadingRef.current || !hasMoreRef.current) return;
 
+      if (page <= lastFetchedPage.current) {
+        return;
+      }
+
       setLoading(true);
       isLoadingRef.current = true;
+      lastFetchedPage.current = page;
 
-      // If there is a debounced search term, use searchKdramasAction.
-      // Note: TMDB search endpoint doesn't support with_origin_country out of the box in the same way,
-      // but we will apply the search action.
       let data: Kdrama[] = [];
       if (debouncedSearchTerm.trim() !== '') {
         data = await searchKdramasAction(debouncedSearchTerm, page);
-        // We can optionally filter searched data further locally by originCountry if needed, 
-        // but typically TMDB search ignores it.
       } else {
         data = await getKdramas(page, originCountry);
       }
@@ -110,8 +164,6 @@ export default function Home() {
       await refreshStats(newIds);
 
       setKdramas(prev => {
-        // If it's a new search or new origin, prev should be empty due to previous useEffect,
-        // but just in case, we append.
         const newData = page === 1 ? data : [...prev, ...data];
         const uniqueData = Array.from(new Map(newData.map(item => [item.id, item])).values());
 
