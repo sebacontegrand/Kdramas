@@ -6,12 +6,13 @@ import KdramaCard from '@/components/KdramaCard';
 import ClearButton from '@/components/ClearButton';
 import ListSearch from '@/components/ListSearch';
 import Link from 'next/link';
+import { Kdrama } from '@/lib/tmdb';
 
 async function FavoritesList({ q }: { q: string }) {
     const favorites = await getFavorites();
 
     const filteredFavorites = q
-        ? favorites.filter((d: any) => d.name.toLowerCase().includes(q.toLowerCase()))
+        ? favorites.filter((d: Kdrama) => d.name.toLowerCase().includes(q.toLowerCase()))
         : favorites;
 
     if (filteredFavorites.length === 0) {
@@ -34,16 +35,16 @@ async function FavoritesList({ q }: { q: string }) {
         );
     }
 
-    const ids = filteredFavorites.map((d: any) => d.id);
+    const ids = filteredFavorites.map((d: Kdrama) => d.id);
     const stats = await getInteractionStats(ids);
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
-            {filteredFavorites.map((drama: any, index: number) => (
+            {filteredFavorites.map((drama: Kdrama, index: number) => (
                 <KdramaCard
                     key={`${drama.id}-${index}`}
                     drama={drama}
-                    initialStats={stats.find((s: any) => s.tmdbId === drama.id)}
+                    initialStats={stats.find((s) => s.tmdbId === drama.id)}
                 />
             ))}
         </div>

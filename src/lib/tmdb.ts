@@ -25,11 +25,32 @@ export interface Character {
     profile_path: string | null;
 }
 
-async function processShows(shows: any[]): Promise<Kdrama[]> {
+export interface InteractionStats {
+    tmdbId: number;
+    avgRating: number;
+    seenCount: number;
+    isFavorite?: boolean;
+    score?: number;
+    hasSeen?: boolean;
+}
+
+interface RawTMDBShow {
+    id: number;
+    name: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    overview: string;
+    first_air_date: string;
+    vote_average: number;
+    popularity: number;
+    origin_country: string[];
+}
+
+async function processShows(shows: RawTMDBShow[]): Promise<Kdrama[]> {
     if (!TMDB_API_KEY) return [];
 
     return await Promise.all(
-        shows.map(async (show: any) => {
+        shows.map(async (show: RawTMDBShow) => {
             // Fetch credits
             const creditsPromise = fetch(`${TMDB_BASE_URL}/tv/${show.id}/credits?api_key=${TMDB_API_KEY}`).then(r => r.json()).catch(() => ({}));
             // Fetch watch providers (Region: AR for Argentina)
@@ -37,14 +58,14 @@ async function processShows(shows: any[]): Promise<Kdrama[]> {
 
             const [creditsData, providersData] = await Promise.all([creditsPromise, providersPromise]);
 
-            const characters = creditsData.cast?.slice(0, 2).map((c: any) => ({
+            const characters = creditsData.cast?.slice(0, 2).map((c: { id: number; character: string; name: string; profile_path: string | null }) => ({
                 id: c.id,
                 name: c.character,
                 actorName: c.name,
                 profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w200${c.profile_path}` : null,
             })) || [];
 
-            const providers = providersData.results?.AR?.flatrate?.map((p: any) => p.provider_name) || [];
+            const providers = providersData.results?.AR?.flatrate?.map((p: { provider_name: string }) => p.provider_name) || [];
 
             return {
                 id: show.id,
@@ -122,18 +143,18 @@ export async function fetchKdramaById(id: number): Promise<Kdrama | null> {
         const videosData = show.videos || {};
 
         // Get full cast (up to 20 for detail screen)
-        const characters = creditsData.cast?.slice(0, 20).map((c: any) => ({
+        const characters = creditsData.cast?.slice(0, 20).map((c: { id: number; character: string; name: string; profile_path: string | null }) => ({
             id: c.id,
             name: c.character,
             actorName: c.name,
             profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w200${c.profile_path}` : null,
         })) || [];
 
-        const providers = providersData.results?.AR?.flatrate?.map((p: any) => p.provider_name) || [];
+        const providers = providersData.results?.AR?.flatrate?.map((p: { provider_name: string }) => p.provider_name) || [];
 
         // Find YouTube trailer
-        const trailer = videosData.results?.find((v: any) => v.site === 'YouTube' && v.type === 'Trailer') ||
-            videosData.results?.find((v: any) => v.site === 'YouTube');
+        const trailer = videosData.results?.find((v: { site: string; type: string; key: string }) => v.site === 'YouTube' && v.type === 'Trailer') ||
+            videosData.results?.find((v: { site: string; type: string; key: string }) => v.site === 'YouTube');
         const trailerKey = trailer ? trailer.key : undefined;
 
         return {

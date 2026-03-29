@@ -27,7 +27,7 @@ function LiquidBackground() {
         let renderer: THREE.WebGLRenderer;
         try {
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        } catch (e) {
+        } catch {
             console.warn("WebGL not supported, falling back to static background.");
             return;
         }
@@ -86,7 +86,7 @@ function LiquidBackground() {
 
         camera.position.z = 5;
 
-        let mouse = new THREE.Vector2(0, 0);
+        const mouse = new THREE.Vector2(0, 0);
         const handleMouseMove = (e: MouseEvent) => {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -112,10 +112,13 @@ function LiquidBackground() {
 
         window.addEventListener('resize', handleResize);
 
+        const container = containerRef.current;
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('resize', handleResize);
-            containerRef.current?.removeChild(renderer.domElement);
+            if (container) {
+                container.removeChild(renderer.domElement);
+            }
             geometry.dispose();
             material.dispose();
         };
@@ -209,7 +212,7 @@ function TiltCard({ origin, onClick }: { origin: Origin; onClick: (id: string) =
 }
 
 export default function OriginLanding({ onSelect }: OriginLandingProps) {
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
@@ -222,14 +225,13 @@ export default function OriginLanding({ onSelect }: OriginLandingProps) {
     );
 
     useEffect(() => {
-        setIsVisible(true);
         const handleGlobalMouseMove = (e: MouseEvent) => {
             mouseX.set(e.clientX);
             mouseY.set(e.clientY);
         };
         window.addEventListener('mousemove', handleGlobalMouseMove);
         return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
-    }, []);
+    }, [mouseX, mouseY]);
 
     const origins: Origin[] = useMemo(() => [
         { id: 'all', name: 'Worldwide', icon: '🌎', color: 'bg-zinc-100 dark:bg-zinc-800' },

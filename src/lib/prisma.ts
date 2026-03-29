@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import pg from 'pg'
 
 // Bypass TLS certificate validation for cloud database connections in this environment
+// This is required for the Driver Adapter to work with Supabase in restrictive environments
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const prismaClientSingleton = () => {
@@ -12,11 +13,10 @@ const prismaClientSingleton = () => {
         throw new Error('DATABASE_URL is missing! Please set your Supabase connection string in Vercel Environment Variables.');
     }
 
-    console.log('DEBUG: Initializing Prisma Client. DATABASE_URL present:', !!connectionString);
     const pool = new pg.Pool({
         connectionString,
         ssl: {
-            rejectUnauthorized: false // This fixes the P1011/TLS certificate error in most development environments
+            rejectUnauthorized: false
         }
     })
     const adapter = new PrismaPg(pool)
@@ -28,24 +28,9 @@ const prismaClientSingleton = () => {
 }
 
 declare global {
-    var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>
+    var prisma: undefined | ReturnType<typeof prismaClientSingleton>
 }
 
-// Browser-safe initialization
-let prisma: PrismaClient;
+export const prisma = globalThis.prisma ?? prismaClientSingleton()
 
-if (typeof window === 'undefined') {
-    if (!globalThis.prismaGlobal) {
-        globalThis.prismaGlobal = prismaClientSingleton();
-    }
-    prisma = globalThis.prismaGlobal;
-} else {
-    // In the browser, we provide a Proxy that throws a helpful error if accessed.
-    prisma = new Proxy({} as PrismaClient, {
-        get() {
-            throw new Error('PrismaClient cannot be used in the browser.');
-        },
-    });
-}
-
-export { prisma }
+if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma

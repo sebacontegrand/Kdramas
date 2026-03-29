@@ -6,12 +6,13 @@ import KdramaCard from '@/components/KdramaCard';
 import ClearButton from '@/components/ClearButton';
 import ListSearch from '@/components/ListSearch';
 import Link from 'next/link';
+import { Kdrama, InteractionStats } from '@/lib/tmdb';
 
 async function BestList({ q }: { q: string }) {
     const best = await getTopRated();
 
     const filteredBest = q
-        ? best.filter((d: any) => d.name.toLowerCase().includes(q.toLowerCase()))
+        ? best.filter((d: Kdrama) => d.name.toLowerCase().includes(q.toLowerCase()))
         : best;
 
     if (filteredBest.length === 0) {
@@ -34,12 +35,12 @@ async function BestList({ q }: { q: string }) {
         );
     }
 
-    const ids = filteredBest.map((d: any) => d.id);
+    const ids = filteredBest.map((d: Kdrama) => d.id);
     const stats = await getInteractionStats(ids);
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
-            {filteredBest.map((drama: any, index: number) => (
+            {filteredBest.map((drama: Kdrama, index: number) => (
                 <div key={`${drama.id}-${index}`} className="relative">
                     {index < 3 && !q && (
                         <div className={`absolute -top-2 -left-2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 border-white font-bold text-xs ${index === 0 ? 'bg-amber-400 text-amber-950' :
@@ -51,7 +52,7 @@ async function BestList({ q }: { q: string }) {
                     )}
                     <KdramaCard
                         drama={drama}
-                        initialStats={stats.find((s: any) => s.tmdbId === drama.id)}
+                        initialStats={stats.find((s: InteractionStats) => s.tmdbId === drama.id)}
                     />
                 </div>
             ))}

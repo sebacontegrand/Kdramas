@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { fetchKdramaById } from '@/lib/tmdb';
-import { getInteractionStats, updateScore, toggleSeen, toggleFavorite } from '@/lib/actions';
+import { getInteractionStats } from '@/lib/actions';
 import KdramaDetailClient from './KdramaDetailClient';
 
 

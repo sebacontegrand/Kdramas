@@ -1,19 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Kdrama } from '@/lib/tmdb';
+import { Kdrama, InteractionStats } from '@/lib/tmdb';
 import { updateScore, toggleSeen, toggleFavorite, resetInteraction } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 
-interface InteractionStats {
-    avgRating: number;
-    seenCount: number;
-    isFavorite?: boolean;
-    score?: number;
-    hasSeen?: boolean;
-}
 
 interface KdramaCardProps {
     drama: Kdrama;
@@ -28,14 +21,6 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
     const [isFavorite, setIsFavorite] = useState(initialStats?.isFavorite || false);
     const [loading, setLoading] = useState(false);
 
-    // Sync state when props change
-    useEffect(() => {
-        if (initialStats) {
-            setRating(initialStats.score || 0);
-            setSeen(initialStats.hasSeen || false);
-            setIsFavorite(initialStats.isFavorite || false);
-        }
-    }, [initialStats]);
 
     // Update rating state and save to DB
     const handleRating = async (newRating: number) => {
@@ -81,6 +66,33 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
         setLoading(false);
         router.refresh();
         onInteract?.();
+    };
+
+    // Share drama link
+    const handleShare = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = `${window.location.origin}/drama/${drama.id}`;
+        try {
+            await navigator.clipboard.writeText(url);
+            // You could add a toast notification here
+            alert('Link copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy link:', err);
+            // Fallback: try to use the older execCommand method
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('Link copied to clipboard!');
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed:', fallbackErr);
+                alert('Failed to copy link. Please copy manually: ' + url);
+            }
+            document.body.removeChild(textArea);
+        }
     };
 
     return (
@@ -148,6 +160,15 @@ export default function KdramaCard({ drama, initialStats, onInteract }: KdramaCa
                                 : 'text-zinc-400 group-hover:text-rose-400'
                                 }`}
                         />
+                    </button>
+                    <button
+                        onClick={handleShare}
+                        disabled={loading}
+                        className="p-2.5 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm shadow-lg border border-zinc-100 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 text-zinc-400 hover:text-blue-600"
+                        title="Share this drama"
+                        aria-label="Share drama link"
+                    >
+                        <ShareIcon className="h-4 w-4" />
                     </button>
                 </div>
             </div>
@@ -254,6 +275,14 @@ function ResetIcon({ className }: { className?: string }) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+        </svg>
+    );
+}
+
+function ShareIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 5.314 9.566 5.314m0 0a2.25 2.25 0 1 0 5.384-2.186" />
         </svg>
     );
 }

@@ -2,20 +2,20 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { fetchKdramas, fetchKdramaById, searchKdramas } from './tmdb';
+import { fetchKdramas, fetchKdramaById, searchKdramas, Kdrama, InteractionStats } from './tmdb';
 
 /**
  * Server Action to fetch K-dramas from TMDB.
  * This keeps the API key secure on the server.
  */
-export async function getKdramas(page: number = 1, originCountry: string = 'KR') {
+export async function getKdramas(page: number = 1, originCountry: string = 'KR'): Promise<Kdrama[]> {
     return await fetchKdramas(page, originCountry);
 }
 
 /**
  * Server Action to search K-dramas from TMDB globally.
  */
-export async function searchKdramasAction(query: string, page: number = 1) {
+export async function searchKdramasAction(query: string, page: number = 1): Promise<Kdrama[]> {
     return await searchKdramas(query, page);
 }
 
@@ -90,10 +90,10 @@ export async function getFavorites() {
 
     const favoriteIds = user.ratings.map(r => r.tmdbId);
     const dramas = await Promise.all(
-        favoriteIds.map(id => fetchKdramaById(id))
+        favoriteIds.map((id: number) => fetchKdramaById(id))
     );
 
-    return dramas.filter((d): d is any => d !== null);
+    return dramas.filter((d): d is Kdrama => d !== null);
 }
 
 /**
@@ -236,10 +236,10 @@ export async function getWatched() {
 
     const watchedIds = user.ratings.map(r => r.tmdbId);
     const dramas = await Promise.all(
-        watchedIds.map(id => fetchKdramaById(id))
+        watchedIds.map((id: number) => fetchKdramaById(id))
     );
 
-    return dramas.filter((d): d is any => d !== null);
+    return dramas.filter((d): d is Kdrama => d !== null);
 }
 
 /**
@@ -260,13 +260,13 @@ export async function getTopRated() {
 
     // Map through ratings to maintain the database order
     const dramas = await Promise.all(
-        user.ratings.map(async (rating) => {
+        user.ratings.map(async (rating: { tmdbId: number }) => {
             const drama = await fetchKdramaById(rating.tmdbId);
             return drama;
         })
     );
 
-    return dramas.filter((d): d is any => d !== null);
+    return dramas.filter((d): d is Kdrama => d !== null);
 }
 
 /**
@@ -357,7 +357,7 @@ export async function clearAllRatings() {
 /**
  * Fetches interaction stats for a list of TMDB IDs.
  */
-export async function getInteractionStats(tmdbIds: number[]) {
+export async function getInteractionStats(tmdbIds: number[]): Promise<InteractionStats[]> {
     if (tmdbIds.length === 0) return [];
 
     try {
@@ -398,9 +398,9 @@ export async function getInteractionStats(tmdbIds: number[]) {
             }
         });
 
-        return tmdbIds.map(id => {
-            const stat = stats.find((s: any) => s.tmdbId === id);
-            const seenStat = seenCounts.find((s: any) => s.tmdbId === id);
+        return tmdbIds.map((id: number) => {
+            const stat = stats.find((s) => s.tmdbId === id);
+            const seenStat = seenCounts.find((s) => s.tmdbId === id);
             const userRating = user?.ratings.find(r => r.tmdbId === id);
 
             return {
@@ -413,7 +413,7 @@ export async function getInteractionStats(tmdbIds: number[]) {
                 hasSeen: userRating?.hasSeen || false
             };
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error('ERROR in getInteractionStats:', error);
         // Return empty stats instead of crashing the whole page
         return tmdbIds.map(id => ({

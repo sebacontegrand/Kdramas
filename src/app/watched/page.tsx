@@ -6,12 +6,13 @@ import KdramaCard from '@/components/KdramaCard';
 import ClearButton from '@/components/ClearButton';
 import ListSearch from '@/components/ListSearch';
 import Link from 'next/link';
+import { Kdrama, InteractionStats } from '@/lib/tmdb';
 
 async function WatchedList({ q }: { q: string }) {
     const watched = await getWatched();
 
     const filteredWatched = q
-        ? watched.filter((d: any) => d.name.toLowerCase().includes(q.toLowerCase()))
+        ? watched.filter((d: Kdrama) => d.name.toLowerCase().includes(q.toLowerCase()))
         : watched;
 
     if (filteredWatched.length === 0) {
@@ -34,16 +35,16 @@ async function WatchedList({ q }: { q: string }) {
         );
     }
 
-    const ids = filteredWatched.map((d: any) => d.id);
+    const ids = filteredWatched.map((d: Kdrama) => d.id);
     const stats = await getInteractionStats(ids);
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
-            {filteredWatched.map((drama: any, index: number) => (
+            {filteredWatched.map((drama: Kdrama, index: number) => (
                 <KdramaCard
                     key={`${drama.id}-${index}`}
                     drama={drama}
-                    initialStats={stats.find((s: any) => s.tmdbId === drama.id)}
+                    initialStats={stats.find((s: InteractionStats) => s.tmdbId === drama.id)}
                 />
             ))}
         </div>
@@ -106,13 +107,6 @@ function CheckIcon({ className }: { className?: string }) {
     );
 }
 
-function TrophyIcon({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0V12m-9 0V4.875c0-.621.504-1.125 1.125-1.125h12.75c.621 0 1.125.504 1.125 1.125V12M12 12h.008v.008H12V12Z" />
-        </svg>
-    );
-}
 
 function ArrowLeftIcon({ className }: { className?: string }) {
     return (
